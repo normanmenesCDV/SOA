@@ -15,11 +15,31 @@ app.get("/books", function (req, res) {
   res.end(JSON.stringify(bookRepository));
 });
 
-app.get("/book/:bookid", function (req, res) {
-  console.log("GET /book/?id=" + req.params.bookid);
+// http://localhost:3000/legacy/book/1
+app.get("/legacy/book/:bookid", function (req, res) {
+  console.log("GET /legacy/book/" + req.params.bookid);
   foundIndex = -1;
   for (i in bookRepository) {
     if (bookRepository[i].id == req.params.bookid) {
+      foundIndex = i;
+      break;
+    }
+  }
+  if (foundIndex == -1) {
+    res.status(404);
+    res.send("");
+  } else {
+    res.send(JSON.stringify(bookRepository[foundIndex]));
+  }
+});
+
+// http://localhost:3000/book?id=1
+app.get("/book", function (req, res) {
+  var bookid = req.query.id;
+  console.log("GET /book/?id=" + bookid);
+  foundIndex = -1;
+  for (i in bookRepository) {
+    if (bookRepository[i].id == bookid) {
       foundIndex = i;
       break;
     }
