@@ -1,0 +1,137 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "version": "1",
+    "title": "Program obsługi meczy - dokumentacja Swagger",
+    "description": "Dokumentacja REST API"
+  },
+  "host": "localhost:3000",
+  "basePath": "/",
+  "schemes": [
+    "http"
+  ],
+  "paths": {
+    "/api/match": {
+      "get": {
+        "tags": [
+          "Match"
+        ],
+        "description": "Pobiera wszystkie mecze lub mecze rozegrane przez podany kraj",
+        "parameters": [
+          {
+            "name": "countryId",
+            "in": "query",
+            "description": "ID kraju (opcjonalne)",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Match"
+        ],
+        "description": "Wstawia mecz",
+        "parameters": [
+          {
+            "name": "body",
+            "description": "dane potrzebne do utworzenia Meczu",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "dateOfMatch": {
+                  "type": "string",
+                  "example": "2000-01-01"
+                },
+                "country1Id": {
+                  "type": "number",
+                  "example": 1
+                },
+                "country2Id": {
+                  "type": "number",
+                  "example": 2
+                },
+                "pointsCountry1": {
+                  "type": "number",
+                  "example": 0
+                },
+                "pointsCountry2": {
+                  "type": "number",
+                  "example": 0
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        }
+      }
+    },
+    "/api/match/{matchId}": {
+      "get": {
+        "tags": [
+          "Match"
+        ],
+        "description": "Pobiera mecz o wskazanym id",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "ID meczu",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "integer"
+                },
+                "minimum": {
+                  "type": "number",
+                  "example": 1
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Match"
+        ],
+        "description": "Usuwa mecz o wskazanym id",
+        "parameters": [
+          {
+            "name": "matchId",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "ID meczu"
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    }
+  }
+}
