@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>REST API Client</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f4f4f4;
+      }
+
+      header {
+        background-color: #333;
+        color: white;
+        padding: 1em;
+        text-align: center;
+      }
+
+      section {
+        margin: 20px;
+      }
+
+      button {
+        padding: 10px;
+        margin: 5px;
+        cursor: pointer;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+      }
+
+      th,
+      td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+      }
+
+      th {
+        background-color: #333;
+        color: white;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Mecze FIFA</h1>
+    </header>
+    <section>
+      <label for="countrySelect">Wybierz kraj:</label>
+      <select id="countrySelect"></select>
+      <button onclick="getMatchesByCountry()">Wyświetl mecze</button>
+      <button onclick="displayMatches()">Wyświetl wszystkie mecze</button>
+    </section>
+    <section>
+      <table id="matchesTable">
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th>Kraj 1</th>
+            <th>Kraj 2</th>
+            <th>Wynik</th>
+          </tr>
+        </thead>
+        <tbody id="matchesBody"></tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>Utwórz nowy mecz</h2>
+      <label for="country">Kraj 1:</label>
+      <input id="country1" /> <br />
+
+      <label for="country2">Kraj 2:</label>
+      <input id="country2" /> <br />
+
+      <label for="dateInput">Data meczu:</label>
+      <input type="date" id="dateInput" /> <br />
+
+      <button onclick="createMatch()">Dodaj nowy mecz</button>
+    </section>
+    <script>
+      fetchCountries();
+      const countrySelect = document.getElementById("countrySelect");
+
+      async function fetchCountries() {
+        try {
+          const response = await fetch("http://localhost:3000/api/country");
+          const countries = await response.json();
+
+          countrySelect.innerHTML = "";
+
+          countries.forEach((country) => {
+            const option = document.createElement("option");
+            option.value = country._id.$oid;
+            option.textContent = country.name;
+            countrySelect.appendChild(option);
+          });
+        } catch (error) {
+          console.error("Error fetching countries:", error);
+          alert("Error fetching countries");
+        }
+      }
+
+      const matchesTable = document.getElementById("matchesTable");
+      const matchesBody = document.getElementById("matchesBody");
+
+      async function displayMatches() {
+        try {
+          const response = await fetch("http://localhost:3000/api/match");
+          const matches = await response.json();
+
+          const responseCoutries = await fetch(
+            "http://localhost:3000/api/country"
+          );
+          const countries = await responseCoutries.json();
+
+          matchesBody.innerHTML = "";
+
+          matches.forEach((match) => {
+            const row = document.createElement("tr");
+
+            const dateCell = document.createElement("td");
+            dateCell.textContent = match.dateOfMatch;
+            row.appendChild(dateCell);
+
+            const country1Cell = document.createElement("td");
+            const country1 = countries.find(
+              (element) => element._id.$oid == match.country1Id
+            );
+            country1Cell.textContent = country1.name;
+            row.appendChild(country1Cell);
+
+            const country2Cell = document.createElement("td");
+            const country2 = countries.find(
+              (element) => element._id.$oid == match.country2Id
+            );
+            country2Cell.textContent = country2.name;
+            row.appendChild(country2Cell);
+
+            const pointsCell = document.createElement("td");
+            pointsCell.textContent = `${match.pointsCountry1} : ${match.pointsCountry2}`;
+            row.appendChild(pointsCell);
+
+            matchesBody.appendChild(row);
+          });
+        } catch (error) {
+          console.error("Błąd przy pobieraniu danych:", error);
+          alert("Błąd przy pobieraniu danych");
+        }
+      }
+
+      async function getMatchesByCountry() {
+        const countryId = countrySelect.value;
+
+        try {
+          const response = await fetch(
+            `http://localhost:3000/api/match/?countryId=${countryId}`
+          );
+          const matches = await response.json();
+
+          const responseCoutries = await fetch(
+            "http://localhost:3000/api/country"
+          );
+          const countries = await responseCoutries.json();
+
+          matchesBody.innerHTML = "";
+
+          matches.forEach((match) => {
+            const row = document.createElement("tr");
+
+            const dateCell = document.createElement("td");
+            dateCell.textContent = match.dateOfMatch;
+            row.appendChild(dateCell);
+
+            const country1Cell = document.createElement("td");
+            const country1 = countries.find(
+              (element) => element._id.$oid == match.country1Id
+            );
+            country1Cell.textContent = country1.name;
+            row.appendChild(country1Cell);
+
+            const country2Cell = document.createElement("td");
+            const country2 = countries.find(
+              (element) => element._id.$oid == match.country2Id
+            );
+            country2Cell.textContent = country2.name;
+            row.appendChild(country2Cell);
+
+            const pointsCell = document.createElement("td");
+            pointsCell.textContent = `${match.pointsCountry1} : ${match.pointsCountry2}`;
+            row.appendChild(pointsCell);
+
+            matchesBody.appendChild(row);
+          });
+        } catch (error) {
+          console.error("Błąd przy pobieraniu danych:", error);
+          alert("Błąd przy pobieraniu danych");
+        }
+      }
+
+      async function createMatch() {
+        const country1Name = country1.value;
+        const country2Name = country2.value;
+        const dateOfMatch = dateInput.value;
+
+        const response = await fetch("http://localhost:3000/api/country");
+        const countries = await response.json();
+
+        const countryValue1 = countries.find(
+          (element) => element.name == country1Name
+        );
+
+        var newCountry1;
+        if (!countryValue1) {
+          const newCountryResponse = await fetch(
+            "http://localhost:3000/api/country",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ name: country1Name }),
+            }
+          );
+          newCountry1 = await newCountryResponse.json();
+        }
+
+        const country1Id = countryValue1
+          ? countryValue1._id.$oid
+          : newCountry1._id.$oid;
+
+        const countryValue2 = countries.find(
+          (element) => element.name == country2Name
+        );
+
+        var newCountry2;
+        if (!countryValue2) {
+          const newCountryResponse = await fetch(
+            "http://localhost:3000/api/country",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ name: country2Name }),
+            }
+          );
+          newCountry2 = await newCountryResponse.json();
+        }
+
+        const country2Id = countryValue2
+          ? countryValue2._id.$oid
+          : newCountry2._id.$oid;
+
+        countries.forEach((country) => {
+          const option = document.createElement("option");
+          option.value = country._id.$oid;
+          option.textContent = country.name;
+          countrySelect.appendChild(option);
+        });
+
+        const newMatch = {
+          dateOfMatch,
+          country1Id,
+          country2Id,
+          pointsCountry1: 0,
+          pointsCountry2: 0,
+        };
+
+        try {
+          const response = await fetch("http://localhost:3000/api/match", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(newMatch),
+          });
+
+          if (response.ok) {
+            alert("Mecz dodany pomyślnie");
+          } else {
+            console.error("Błąd przy dodawaniu meczu:", response.statusText);
+            alert("Błąd przy dodawaniu meczu");
+          }
+        } catch (error) {
+          console.error("Błąd przy dodawaniu meczu:", error);
+          alert("Błąd przy dodawaniu meczu");
+        }
+      }
+    </script>
+  </body>
+</html>

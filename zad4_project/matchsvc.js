@@ -2,15 +2,135 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const app = express();
 
-var MongoDB = require("mongodb");
-var mongoc = MongoDB.MongoClient;
+const cors = require("cors");
+
+// nie działa połączenie z bazą danych
+const MongoDB = require("mongodb");
+const mongoc = MongoDB.MongoClient;
 
 const swaggerUi = require("swagger-ui-express");
 const swaggerDocument = require("./swagger.json");
+
+app.use(cors());
+
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
+
+const matchRepository = [
+  {
+    _id: {
+      $oid: "6568fe37227389562b5ba297",
+    },
+    dateOfMatch: "2023-05-05",
+    country1Id: "6568fa5c227389562b5ba28b",
+    country2Id: "6568fa5c227389562b5ba28c",
+    pointsCountry1: 0,
+    pointsCountry2: 0,
+  },
+  {
+    _id: {
+      $oid: "6568fe37227389562b5ba298",
+    },
+    dateOfMatch: "2023-10-23",
+    country1Id: "6568fa5c227389562b5ba28c",
+    country2Id: "6568fa5c227389562b5ba28f",
+    pointsCountry1: 2,
+    pointsCountry2: 1,
+  },
+];
+
+const countryRepository = [
+  {
+    _id: {
+      $oid: "6568fa5c227389562b5ba28b",
+    },
+    name: "Polska",
+  },
+  {
+    _id: {
+      $oid: "6568fa5c227389562b5ba28c",
+    },
+    name: "Niemcy",
+  },
+  {
+    _id: {
+      $oid: "6568fa5c227389562b5ba28d",
+    },
+    name: "Czechy",
+  },
+  {
+    _id: {
+      $oid: "6568fa5c227389562b5ba28e",
+    },
+    name: "Słowacja",
+  },
+  {
+    _id: {
+      $oid: "6568fa5c227389562b5ba28f",
+    },
+    name: "USA",
+  },
+];
+
+app.get("/api/country", function (req, res) {
+  // #swagger.description = 'Pobiera wszystkie kraje'
+  // #swagger.tags = ['Country']
+
+  console.log("GET api/country");
+  res.json(countryRepository);
+});
+
+app.get("/api/country/:countryId", function (req, res) {
+  // #swagger.description = 'Pobiera mecz o wskazanym id'
+  // #swagger.tags = ['Country']
+  /* #swagger.parameters['countryId'] = { 
+        description: 'ID kraju',    
+        in: 'path',
+        required: true,
+        schema: {
+          type: 'string'
+        }
+      }
+  */
+  const countryId = req.params.countryId;
+  console.log(`GET api/country/${countryId}`);
+
+  const foundCountry = countryRepository.find(
+    (country) => country._id.$oid == countryId
+  );
+
+  if (!foundCountry) {
+    res.status(404).send("Nie znaleziono takiego państwa");
+  } else {
+    res.json(foundCountry);
+  }
+});
+
+app.post("/api/country", function (req, res) {
+  // #swagger.description = 'Wstawia kraj'
+  // #swagger.tags = ['Country']
+  /*  #swagger.parameters['body'] = {
+            description: 'dane potrzebne do utworzenia kraju',
+            in: 'body',
+            required: true,
+            schema: {
+                name: "name",
+            }
+    } */
+
+  const newCountry = {
+    _id: {
+      $oid: makeId(),
+    },
+    name: req.body.name,
+  };
+  console.log(`POST api/country/ ${JSON.stringify(newCountry)}`);
+
+  countryRepository.push(newCountry);
+  res.status(201).json(newCountry);
+});
 
 app.get("/api/match", function (req, res) {
   // #swagger.description = 'Pobiera wszystkie mecze lub mecze rozegrane przez podany kraj'
@@ -19,7 +139,7 @@ app.get("/api/match", function (req, res) {
         in: 'query',
         description: 'ID kraju (opcjonalne)',
         schema: {
-          type: 'integer'
+          type: 'string'
         }
       }
   */
@@ -52,15 +172,14 @@ app.get("/api/match/:matchId", function (req, res) {
         name: 'id',
         required: true,
         schema: {
-          type: 'integer',
-          minimum: 1
+          type: 'string'
         }
       }
   */
   const matchId = req.params.matchId;
   console.log(`GET api/match/${matchId}`);
 
-  const foundMatch = matchRepository.find((match) => match.id == matchId);
+  const foundMatch = matchRepository.find((match) => match._id.$oid == matchId);
 
   if (!foundMatch) {
     res.status(404).send("Nie znaleziono takiego meczu");
@@ -78,13 +197,23 @@ app.post("/api/match", function (req, res) {
             required: true,
             schema: {
                 dateOfMatch: "2000-01-01",
-                country1Id: 1,
-                country2Id: 2,
+                country1Id: "",
+                country2Id: "",
                 pointsCountry1: 0,
                 pointsCountry2: 0,
             }
     } */
-  const newMatch = req.body;
+
+  const newMatch = {
+    _id: {
+      $oid: makeId(),
+    },
+    dateOfMatch: req.body.dateOfMatch,
+    country1Id: req.body.country1Id,
+    country2Id: req.body.country2Id,
+    pointsCountry1: req.body.pointsCountry1,
+    pointsCountry2: req.body.pointsCountry2,
+  };
   console.log(`POST api/match/ ${JSON.stringify(newMatch)}`);
 
   matchRepository.push(newMatch);
@@ -98,7 +227,9 @@ app.delete("/api/match/:matchId", function (req, res) {
   const matchId = req.params.matchId;
   console.log(`DELETE api/match/${matchId}`);
 
-  const indexMatch = matchRepository.findIndex((match) => match.id == matchId);
+  const indexMatch = matchRepository.findIndex(
+    (match) => match._id.$oid == matchId
+  );
 
   if (indexMatch == -1) {
     res.status(404).send("Nie znaleziono takiego meczu");
@@ -107,6 +238,18 @@ app.delete("/api/match/:matchId", function (req, res) {
     res.end(JSON.stringify(removedItem));
   }
 });
+
+function makeId() {
+  let result = "";
+  const characters = "abcdefghijklmnopqrstuvwxyz0123456789";
+  const charactersLength = characters.length;
+  let counter = 0;
+  while (counter < 24) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    counter += 1;
+  }
+  return result;
+}
 
 app.listen(3000, () => {
   console.log("Server started");

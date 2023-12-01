@@ -11,6 +11,72 @@
     "http"
   ],
   "paths": {
+    "/api/country": {
+      "get": {
+        "tags": [
+          "Country"
+        ],
+        "description": "Pobiera wszystkie kraje",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Country"
+        ],
+        "description": "Wstawia kraj",
+        "parameters": [
+          {
+            "name": "body",
+            "description": "dane potrzebne do utworzenia kraju",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "example": "name"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        }
+      }
+    },
+    "/api/country/{countryId}": {
+      "get": {
+        "tags": [
+          "Country"
+        ],
+        "description": "Pobiera mecz o wskazanym id",
+        "parameters": [
+          {
+            "name": "countryId",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "ID kraju",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
     "/api/match": {
       "get": {
         "tags": [
@@ -23,7 +89,7 @@
             "in": "query",
             "description": "ID kraju (opcjonalne)",
             "schema": {
-              "type": "integer"
+              "type": "string"
             }
           }
         ],
@@ -52,12 +118,12 @@
                   "example": "2000-01-01"
                 },
                 "country1Id": {
-                  "type": "number",
-                  "example": 1
+                  "type": "string",
+                  "example": ""
                 },
                 "country2Id": {
-                  "type": "number",
-                  "example": 2
+                  "type": "string",
+                  "example": ""
                 },
                 "pointsCountry1": {
                   "type": "number",
@@ -92,17 +158,7 @@
             "type": "string",
             "description": "ID meczu",
             "schema": {
-              "type": "object",
-              "properties": {
-                "type": {
-                  "type": "string",
-                  "example": "integer"
-                },
-                "minimum": {
-                  "type": "number",
-                  "example": 1
-                }
-              }
+              "type": "string"
             }
           }
         ],
